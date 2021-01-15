@@ -12,13 +12,13 @@ public class ZkConfig {
   @JsonProperty
   @JsonSerialize(using = ByteArrayAdapter.Serializing.class)
   @JsonDeserialize(using = ByteArrayAdapter.Deserializing.class)
-  @NotNull
+//  @NotNull
   private byte[] serverSecret;
 
   @JsonProperty
   @JsonSerialize(using = ByteArrayAdapter.Serializing.class)
   @JsonDeserialize(using = ByteArrayAdapter.Deserializing.class)
-  @NotNull
+//  @NotNull
   private byte[] serverPublic;
 
   @JsonProperty
