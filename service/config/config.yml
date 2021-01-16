@@ -1,9 +1,9 @@
-twilio:
-  accountId: AC0bfca3da39e9d00b8a3e03991af00000
-  accountToken: e3511f257424cea8dadfddcd42800000
-  localDomain:  signal.domain.com
+twilio: 
+  accountId: ACe6ec0dccb2358d110954c4c41a14fd43
+  accountToken: ccda50666f17c51860f0419ae3a07ad6
+  localDomain: localhost
   numbers:
-    - "+12565769630" # Change this to your number from Twilio
+    - "+15677770020"
 
 backupService:
   userAuthenticationTokenSharedSecret: bd5ee839bfa83dc1f60af05d7db00000 # Generate it with `head -c 16 /dev/urandom | hexdump -ve '1/1 "%.2x"'`
@@ -137,9 +137,10 @@ abuseDatabase: # database for abuse
   password:    
   url:         jdbc:postgresql://localhost:5432/signal-abuse
 
-gcm: # firebase messaging
-  senderId: 000000000 # your sender id
-  apiKey: xxxxxxxxxxx # your api key
+gcm:
+  senderId: 1068496091591
+  apiKey: AAAA-MdUecc:APA91bG0ALK77xWSzleaG2TjiFftQq07Jn_yiakOPncDQ4HbuPpYHzpmDjvDbOadI2SETerc8Zw4t5yIv8plavar3suZmX32AsnIyR5VM8mS-ZHOAdeTj_NpeFNvip9kmk2fDOqRRfjL	
+
 
 recaptcha: # google recaptcha v3
   secret: xxxxxxxxxxx # your recaptcha secret
