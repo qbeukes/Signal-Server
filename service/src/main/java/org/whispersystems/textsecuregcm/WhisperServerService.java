@@ -142,6 +142,7 @@ import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletRegistration;
 import java.security.Security;
+import java.util.Base64;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -193,6 +194,11 @@ public class WhisperServerService extends Application<WhisperServerConfiguration
   public void run(WhisperServerConfiguration config, Environment environment)
       throws Exception
   {
+//    ServerSecretParams secret = ServerSecretParams.generate();
+//    System.out.println("private: " + new String(Base64.getEncoder().encode((secret.serialize()))));
+//    System.out.println("public: " + new String(Base64.getEncoder().encode((secret.getPublicParams().serialize()))));
+//    System.exit(1);
+
     SharedMetricRegistries.add(Constants.METRICS_NAME, environment.metrics());
     environment.getObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     environment.getObjectMapper().setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
@@ -294,9 +300,9 @@ public class WhisperServerService extends Application<WhisperServerConfiguration
     PostPolicyGenerator    profileCdnPolicyGenerator = new PostPolicyGenerator(config.getCdnConfiguration().getRegion(), config.getCdnConfiguration().getBucket(), config.getCdnConfiguration().getAccessKey());
     PolicySigner           profileCdnPolicySigner    = new PolicySigner(config.getCdnConfiguration().getAccessSecret(), config.getCdnConfiguration().getRegion());
 
-    //ServerSecretParams        zkSecretParams         = new ServerSecretParams(config.getZkConfig().getServerSecret());
-    //ServerZkProfileOperations zkProfileOperations    = new ServerZkProfileOperations(zkSecretParams);
-    //ServerZkAuthOperations    zkAuthOperations       = new ServerZkAuthOperations(zkSecretParams);
+    ServerSecretParams        zkSecretParams         = new ServerSecretParams(config.getZkConfig().getServerSecret());
+    ServerZkProfileOperations zkProfileOperations    = new ServerZkProfileOperations(zkSecretParams);
+    ServerZkAuthOperations    zkAuthOperations       = new ServerZkAuthOperations(zkSecretParams);
     boolean                   isZkEnabled            = config.getZkConfig().isEnabled();
 
     AttachmentControllerV1 attachmentControllerV1    = new AttachmentControllerV1(rateLimiters, config.getAwsAttachmentsConfiguration().getAccessKey(), config.getAwsAttachmentsConfiguration().getAccessSecret(), config.getAwsAttachmentsConfiguration().getBucket());
@@ -304,7 +310,7 @@ public class WhisperServerService extends Application<WhisperServerConfiguration
     AttachmentControllerV3 attachmentControllerV3    = new AttachmentControllerV3(rateLimiters, config.getGcpAttachmentsConfiguration().getDomain(), config.getGcpAttachmentsConfiguration().getEmail(), config.getGcpAttachmentsConfiguration().getMaxSizeInBytes(), config.getGcpAttachmentsConfiguration().getPathPrefix(), config.getGcpAttachmentsConfiguration().getRsaSigningKey());
     KeysController         keysController            = new KeysController(rateLimiters, keys, accountsManager, directoryQueue);
     MessageController      messageController         = new MessageController(rateLimiters, pushSender, receiptSender, accountsManager, messagesManager, null);
-    ProfileController      profileController         = new ProfileController(rateLimiters, accountsManager, profilesManager, usernamesManager, cdnS3Client, profileCdnPolicyGenerator, profileCdnPolicySigner, config.getCdnConfiguration().getBucket(), null, isZkEnabled);
+    ProfileController      profileController         = new ProfileController(rateLimiters, accountsManager, profilesManager, usernamesManager, cdnS3Client, profileCdnPolicyGenerator, profileCdnPolicySigner, config.getCdnConfiguration().getBucket(), zkProfileOperations, isZkEnabled);
     StickerController      stickerController         = new StickerController(rateLimiters, config.getCdnConfiguration().getAccessKey(), config.getCdnConfiguration().getAccessSecret(), config.getCdnConfiguration().getRegion(), config.getCdnConfiguration().getBucket());
     RemoteConfigController remoteConfigController    = new RemoteConfigController(remoteConfigsManager, config.getRemoteConfigConfiguration().getAuthorizedTokens());
 
@@ -319,7 +325,7 @@ public class WhisperServerService extends Application<WhisperServerConfiguration
     environment.jersey().register(new DeviceController(pendingDevicesManager, accountsManager, messagesManager, directoryQueue, rateLimiters, config.getMaxDevices()));
     environment.jersey().register(new DirectoryController(rateLimiters, directory, directoryCredentialsGenerator));
     environment.jersey().register(new ProvisioningController(rateLimiters, pushSender));
-    environment.jersey().register(new CertificateController(new CertificateGenerator(config.getDeliveryCertificate().getCertificate(), config.getDeliveryCertificate().getPrivateKey(), config.getDeliveryCertificate().getExpiresDays()), null, isZkEnabled));
+    environment.jersey().register(new CertificateController(new CertificateGenerator(config.getDeliveryCertificate().getCertificate(), config.getDeliveryCertificate().getPrivateKey(), config.getDeliveryCertificate().getExpiresDays()), zkAuthOperations, isZkEnabled));
     environment.jersey().register(new VoiceVerificationController(config.getVoiceVerificationConfiguration().getUrl(), config.getVoiceVerificationConfiguration().getLocales()));
     environment.jersey().register(new SecureStorageController(storageCredentialsGenerator));
     environment.jersey().register(new SecureBackupController(backupCredentialsGenerator));
